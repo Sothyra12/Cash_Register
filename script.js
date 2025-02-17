@@ -19,9 +19,10 @@ let cid = [
 ];
 
 const checkForChangeDue = () => {
-  if (cashInput.value < price) {
+  cash = Number(cashInput.value);
+  if (cash < price) {
     alert("Customer does not have enough money to purchase the item");
-  } else if ((cash = cashInput.value)) {
+  } else if ((cash === price)) {
     changeDueElement.textContent =
       "No change due - customer paid with exact cash";
   } else {
@@ -29,7 +30,13 @@ const checkForChangeDue = () => {
   }
 };
 
-const calculateChangeDue = () => {};
+const calculateChangeDue = () => {
+  let changeDue = cash - price;
+};
+
+const checkCashInDrawer = () => {
+  
+};
 
 purchaseBtn.addEventListener("click", () => {
   checkForChangeDue();
