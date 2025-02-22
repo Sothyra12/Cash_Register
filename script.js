@@ -100,8 +100,7 @@ const calculateChangeDue = () => {
 purchaseBtn.addEventListener("click", () => {
   const cash = parseFloat(cashInput.value);
   if (cash < price) {
-    alert("Customer does not have enough money to purchase the item");
-    return;
+    return alert("Customer does not have enough money to purchase the item");
   }
   changeDueElement.textContent =
     cash === price ? "No change due - customer paid with exact cash" : "";
