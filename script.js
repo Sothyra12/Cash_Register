@@ -1,50 +1,109 @@
+// script.js
+
 const cashInput = document.getElementById("cash");
 const changeDueElement = document.getElementById("change-due");
 const purchaseBtn = document.getElementById("purchase-btn");
 
 const price = 19.5;
-const denomValues = {
-  "PENNY": 0.01, "NICKEL": 0.05, "DIME": 0.1, "QUARTER": 0.25,
-  "ONE": 1, "FIVE": 5, "TEN": 10, "TWENTY": 20, "ONE HUNDRED": 100
-};
-const cid = [
-  ["PENNY", 0.5], ["NICKEL", 0], ["DIME", 0], ["QUARTER", 0],
-  ["ONE", 0], ["FIVE", 0], ["TEN", 0], ["TWENTY", 0], ["ONE HUNDRED", 0]
+let cid = [
+  ["PENNY", 1.01],
+  ["NICKEL", 2.05],
+  ["DIME", 3.1],
+  ["QUARTER", 4.25],
+  ["ONE", 90],
+  ["FIVE", 55],
+  ["TEN", 20],
+  ["TWENTY", 60],
+  ["ONE HUNDRED", 100],
 ];
 
+// Denomination values
+const getDenominationValue = (name) => {
+  switch (name) {
+    case "PENNY":
+      return 0.01;
+    case "NICKEL":
+      return 0.05;
+    case "DIME":
+      return 0.1;
+    case "QUARTER":
+      return 0.25;
+    case "ONE":
+      return 1;
+    case "FIVE":
+      return 5;
+    case "TEN":
+      return 10;
+    case "TWENTY":
+      return 20;
+    case "ONE HUNDRED":
+      return 100;
+    default:
+      return 0;
+  }
+};
+
 const calculateChangeDue = () => {
-  const cash = +cashInput.value;
-  let changeDue = cash - price;
+  const cash = parseFloat(cashInput.value);
+  let changeDue = parseFloat((cash - price).toFixed(2));
   if (changeDue < 0) return alert("Insufficient funds");
 
-  const change = [...cid].reverse().reduce((acc, [denoName, amountAvailable]) => {
-    const denomValue = denomValues[denoName];
-    if (changeDue >= denomValue && amountAvailable > 0) {
-      const amountToReturn = Math.min(Math.floor(changeDue / denomValue), Math.floor(amountAvailable / denomValue));
-      if (amountToReturn > 0) {
-        acc.push({ denoName, amount: amountToReturn * denomValue });
-        changeDue -= amountToReturn * denomValue;
-        changeDue = parseFloat(changeDue.toFixed(2)); // Precision fix
-      }
-    }
-    return acc;
-  }, []);
+  let totalCID = parseFloat(
+    cid.reduce((acc, [, amount]) => acc + amount, 0).toFixed(2)
+  );
 
-  if (changeDue > 0) return changeDueElement.innerText = "Status: INSUFFICIENT_FUNDS";
-
-  const totalCID = cid.reduce((acc, [, amount]) => acc + amount, 0);
-  if (Math.abs(cash - price - totalCID) < 0.001) {
-    return changeDueElement.innerText = `Status: CLOSED ${cid.filter(([_, amount]) => amount > 0).map(([denoName, amount]) => `${denoName}: $${amount.toFixed(2)}`).join(' ')}`;
+  if (changeDue > totalCID) {
+    changeDueElement.innerText = "Status: INSUFFICIENT_FUNDS";
+    return;
   }
 
-  changeDueElement.innerText = `Status: OPEN ${change.sort((a, b) => denomValues[b.denoName] - denomValues[a.denoName]).map(({ denoName, amount }) => `${denoName}: $${amount.toFixed(2)}`).join(' ')}`;
+  let changeArr = [];
+  let remainingCID = [...cid].reverse();
+
+  for (let [denoName, amountAvailable] of remainingCID) {
+    let denomValue = getDenominationValue(denoName);
+    let amountToReturn = 0;
+
+    while (changeDue >= denomValue && amountAvailable > 0) {
+      amountToReturn += denomValue;
+      amountAvailable -= denomValue;
+      changeDue -= denomValue;
+      changeDue = parseFloat(changeDue.toFixed(2)); // Avoid floating-point issues
+    }
+
+    if (amountToReturn > 0) {
+      changeArr.push([denoName, parseFloat(amountToReturn.toFixed(2))]);
+    }
+  }
+
+  if (changeDue > 0) {
+    changeDueElement.innerText = "Status: INSUFFICIENT_FUNDS";
+    return;
+  }
+
+  let updatedTotalCID = parseFloat(
+    cid.reduce((acc, [deno, amount]) => acc + amount, 0).toFixed(2)
+  );
+
+  if (updatedTotalCID === parseFloat((cash - price).toFixed(2))) {
+    changeDueElement.innerText = `Status: CLOSED ${changeArr
+      .map(([denoName, amount]) => `${denoName}: $${amount.toFixed(2)}`)
+      .join(" ")}`;
+    return;
+  }
+
+  changeDueElement.innerText = `Status: OPEN ${changeArr
+    .map(([denoName, amount]) => `${denoName}: $${amount.toFixed(2)}`)
+    .join(" ")}`;
 };
 
 purchaseBtn.addEventListener("click", () => {
-  const cash = +cashInput.value;
+  const cash = parseFloat(cashInput.value);
   if (cash < price) {
-    return alert("Customer does not have enough money to purchase the item");
+    alert("Customer does not have enough money to purchase the item");
+    return;
   }
-  changeDueElement.textContent = cash === price ? "No change due - customer paid with exact cash" : "";
+  changeDueElement.textContent =
+    cash === price ? "No change due - customer paid with exact cash" : "";
   if (cash > price) calculateChangeDue();
 });
