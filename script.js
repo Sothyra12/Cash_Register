@@ -46,7 +46,6 @@ const getDenominationValue = (name) => {
 const calculateChangeDue = () => {
   const cash = parseFloat(cashInput.value);
   let changeDue = parseFloat((cash - price).toFixed(2));
-  if (changeDue < 0) return alert("Insufficient funds");
 
   let totalCID = parseFloat(
     cid.reduce((acc, [, amount]) => acc + amount, 0).toFixed(2)
