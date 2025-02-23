@@ -3,22 +3,30 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Cash Register App</title>
-        <link rel="stylesheet" href="styles.css" />
-    </head>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cash Register App</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
 
-    <body>
-        <header>
-            <h1>Sothyra's Cash Register App</h1>
-        </header>
-        <main>
-          <input id="cash"></input>
-          <div id="change-due"></div>
-          <button id="purchase-btn">purchase</button>
-        </main>
-        <script src="./script.js"></script>
-    </body>
+<body>
+    <header>
+        <h1>Sothyra's Cash Register App</h1>
+    </header>
+    <main>
+        <div class="container">
+            <div id="change-due"></div>
+            <p>Enter the price of the item the customer bought:</p>
+            <input id="item-price"></input>
+            <p>Enter the amount of cash received from the customer:</p>
+            <input id="cash"></input>
+            <div><br><button id="purchase-btn">purchase</button></br></div>
+            <p class="cid-text">Cash in drawer</p>
+            <div class="cid-remaining" id="remainingCID"></div>
+        </div>
+    </main>
+    <script src="./script.js"></script>
+</body>
+
 </html>

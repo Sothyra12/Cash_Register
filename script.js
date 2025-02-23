@@ -1,10 +1,12 @@
+
 // script.js
 
 const cashInput = document.getElementById("cash");
 const changeDueElement = document.getElementById("change-due");
 const purchaseBtn = document.getElementById("purchase-btn");
+const itemPrice = document.getElementById("item-price");
+const remainingCash = document.getElementById("remainingCID");
 
-const price = 19.5;
 let cid = [
   ["PENNY", 1.01],
   ["NICKEL", 2.05],
@@ -17,34 +19,33 @@ let cid = [
   ["ONE HUNDRED", 100],
 ];
 
-// Denomination values
 const getDenominationValue = (name) => {
   switch (name) {
-    case "PENNY":
-      return 0.01;
-    case "NICKEL":
-      return 0.05;
-    case "DIME":
-      return 0.1;
-    case "QUARTER":
-      return 0.25;
-    case "ONE":
-      return 1;
-    case "FIVE":
-      return 5;
-    case "TEN":
-      return 10;
-    case "TWENTY":
-      return 20;
-    case "ONE HUNDRED":
-      return 100;
-    default:
-      return 0;
+    case "PENNY": return 0.01;
+    case "NICKEL": return 0.05;
+    case "DIME": return 0.1;
+    case "QUARTER": return 0.25;
+    case "ONE": return 1;
+    case "FIVE": return 5;
+    case "TEN": return 10;
+    case "TWENTY": return 20;
+    case "ONE HUNDRED": return 100;
+    default: return 0;
   }
 };
 
+const updateCashInDrawer = () => {
+  remainingCash.innerHTML = `${cid
+    .map(
+      ([denoName, amountAvailable]) =>
+      `<b>${denoName}</b>: $${amountAvailable.toFixed(2)}`
+    )
+    .join("<br>")}`;
+};
+
 const calculateChangeDue = () => {
-  const cash = parseFloat(cashInput.value);
+  let price = parseFloat(itemPrice.value);
+  let cash = parseFloat(cashInput.value);
   let changeDue = parseFloat((cash - price).toFixed(2));
 
   let totalCID = parseFloat(
@@ -52,56 +53,73 @@ const calculateChangeDue = () => {
   );
 
   if (changeDue > totalCID) {
-    changeDueElement.innerText = "Status: INSUFFICIENT_FUNDS";
-    return;
+    return (changeDueElement.innerText = "Status: INSUFFICIENT_FUNDS");
   }
 
   let changeArr = [];
-  let remainingCID = [...cid].reverse();
+  let reversedCID = [...cid].reverse();
+  for (let [denoName, denoAmountAvailable] of reversedCID) {
+    let denoValue = getDenominationValue(denoName);
+    let denoAmountToReturn = 0;
 
-  for (let [denoName, amountAvailable] of remainingCID) {
-    let denomValue = getDenominationValue(denoName);
-    let amountToReturn = 0;
-
-    while (changeDue >= denomValue && amountAvailable > 0) {
-      amountToReturn += denomValue;
-      amountAvailable -= denomValue;
-      changeDue -= denomValue;
-      changeDue = parseFloat(changeDue.toFixed(2)); // Avoid floating-point issues
+    while (changeDue >= denoValue && denoAmountAvailable > 0) {
+      denoAmountToReturn += denoValue;
+      denoAmountAvailable -= denoValue;
+      changeDue -= denoValue;
+      changeDue = Math.round(changeDue * 100) / 100; // 🔹 Fix floating-point issues
     }
-
-    if (amountToReturn > 0) {
-      changeArr.push([denoName, parseFloat(amountToReturn.toFixed(2))]);
+    if (denoAmountToReturn > 0) {
+      changeArr.push([denoName, parseFloat(denoAmountToReturn.toFixed(2))]);
     }
   }
 
   if (changeDue > 0) {
-    changeDueElement.innerText = "Status: INSUFFICIENT_FUNDS";
-    return;
+    return (changeDueElement.innerText = "Status: INSUFFICIENT_FUNDS"); // 🔹 Updated message for clarity
   }
+
+  // 🔹 Update cash in drawer by subtracting given change
+  cid = cid.map(([denoName, amount]) => {
+    let changeGiven = changeArr.find(([name]) => name === denoName)?.[1] || 0;
+    return [denoName, parseFloat((amount - changeGiven).toFixed(2))];
+  });
+
+  updateCashInDrawer(); // 🔹 Update cash in drawer display
 
   let updatedTotalCID = parseFloat(
-    cid.reduce((acc, [deno, amount]) => acc + amount, 0).toFixed(2)
+    cid.reduce((acc, [_, amount]) => acc + amount, 0).toFixed(2)
   );
 
-  if (updatedTotalCID === parseFloat((cash - price).toFixed(2))) {
-    changeDueElement.innerText = `Status: CLOSED ${changeArr
-      .map(([denoName, amount]) => `${denoName}: $${amount.toFixed(2)}`)
-      .join(" ")}`;
-    return;
+  if (updatedTotalCID === 0) {
+    // 🔹 Changed condition to check if drawer is empty
+    return (changeDueElement.innerText = `\n Status: CLOSED \n
+        ${changeArr
+          .map(
+            ([denoName, amountAvailable]) =>
+              `${denoName}: $${amountAvailable.toFixed(2)}`
+          )
+          .join("\n")}\n`);
   }
 
-  changeDueElement.innerText = `Status: OPEN ${changeArr
-    .map(([denoName, amount]) => `${denoName}: $${amount.toFixed(2)}`)
-    .join(" ")}`;
+  changeDueElement.innerText = `\n Status: OPEN \n
+    ${changeArr
+      .map(
+        ([denoName, amountAvailable]) =>
+          `${denoName}: $${amountAvailable.toFixed(2)}`
+      )
+      .join("\n")}\n`;
 };
 
+window.onload = updateCashInDrawer; // 🔹 Update cash in drawer display on page load
+
 purchaseBtn.addEventListener("click", () => {
-  const cash = parseFloat(cashInput.value);
+  let cash = parseFloat(cashInput.value);
+  let price = parseFloat(itemPrice.value);
   if (cash < price) {
     return alert("Customer does not have enough money to purchase the item");
+  } else if (cash === price) {
+    return (changeDueElement.innerText =
+      "No change due - customer paid with exact cash");
+  } else {
+    calculateChangeDue();
   }
-  changeDueElement.textContent =
-    cash === price ? "No change due - customer paid with exact cash" : "";
-  if (cash > price) calculateChangeDue();
 });
