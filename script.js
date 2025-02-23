@@ -48,7 +48,7 @@ const calculateChangeDue = () => {
   let changeDue = parseFloat((cash - price).toFixed(2));
 
   let totalCID = parseFloat(
-    cid.reduce((acc, [, amount]) => acc + amount, 0).toFixed(2)
+    cid.reduce((acc, [_, amount]) => acc + amount, 0).toFixed(2)
   );
 
   if (changeDue > totalCID) {
